@@ -16,7 +16,7 @@ export type Publication = {
   authors: string;
   venue: string;
   year: number;
-  type?: "journal" | "conference" | "chapter" | "thesis";
+  type?: "journal" | "conference" | "chapter" | "thesis" | "preprint";
   link?: string; // Journal / DOI URL
   github?: string; // Code repository URL
   bibtex?: string;
@@ -26,19 +26,24 @@ export type Publication = {
 
 export const publications: Publication[] = [
   {
-    // TODO(Rafael): confirm full title, first author, venue, year, DOI & repo.
-    title: "POIROT",
-    authors: "[First author], R. Sendra-Arranz, Á. Gutiérrez",
-    venue: "",
+    title:
+      "POIROT: Interrogating Agents for Failure Detection in Multi-Agent Systems",
+    authors:
+      "I. Dellibarda Varela, R. Sendra-Arranz, P. Romero-Sorozabal, J. M. Valverde-García, A. F. Laudanski, Á. Gutiérrez, E. Rocon, M. Cebrian",
+    venue: "arXiv:2606.02282 (cs.AI)",
     year: 2026,
-    type: "journal",
-    link: "",
+    type: "preprint",
+    link: "https://arxiv.org/abs/2606.02282",
     github: "",
-    bibtex: `@article{poirot2026,
-  title   = {POIROT},
-  author  = {[First author] and Sendra-Arranz, Rafael and Guti\\'errez, \\'Alvaro},
-  journal = {},
-  year    = {2026}
+    abstract:
+      "Emergent failures and hallucinations in Large Language Model multi-agent systems are addressed by POIROT, a protocol that leverages the system's own agents as diagnostic evaluators. The approach outperforms single-LLM evaluator baselines, with gains that scale with problem complexity, showing that safety oversight can be handled internally rather than by external evaluators. The authors release an open-source POIROT library and BLAME, a benchmark for fault attribution in safety-critical systems.",
+    bibtex: `@misc{dellibarda2026poirot,
+  title         = {POIROT: Interrogating Agents for Failure Detection in Multi-Agent Systems},
+  author        = {Dellibarda Varela, I\\~naki and Sendra-Arranz, Rafael and Romero-Sorozabal, Pablo and Valverde-Garc\\'ia, J.M. and Laudanski, Annemarie F. and Guti\\'errez, \\'Alvaro and Rocon, Eduardo and Cebrian, Manuel},
+  year          = {2026},
+  eprint        = {2606.02282},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI}
 }`,
   },
   {

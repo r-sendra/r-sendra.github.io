@@ -56,6 +56,29 @@ const {
         { threshold: 0, rootMargin: "0px 0px -8% 0px" },
       );
       document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+      // Fire the neuron-activation pulse on section titles when they enter
+      // view, and re-fire on hover. Restart the CSS animation via reflow.
+      const fire = (el) => {
+        el.classList.remove("fire");
+        void el.offsetWidth;
+        el.classList.add("fire");
+      };
+      const sio = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              fire(e.target);
+              sio.unobserve(e.target);
+            }
+          }
+        },
+        { threshold: 0.7 },
+      );
+      document.querySelectorAll(".spike").forEach((el) => {
+        sio.observe(el);
+        el.addEventListener("mouseenter", () => fire(el));
+      });
     </script>
   </body>
 </html>

@@ -78,7 +78,10 @@ import { publications } from "../data/publications";
     <!-- ===================== ABOUT ===================== -->
     <section id="about" class="reveal scroll-mt-24 pt-16">
       <p class="eyebrow">about</p>
-      <div class="mt-6 grid gap-8 sm:grid-cols-[auto_1fr] sm:items-start">
+      <h2 class="spike mt-2 font-display text-4xl uppercase leading-none text-ink">
+        Who I am
+      </h2>
+      <div class="mt-8 grid gap-8 sm:grid-cols-[auto_1fr] sm:items-start">
         <!-- Photo in a retro CRT window frame. Portrait image lives at
              public/rafael.jpg; adjust w-40 / sm:w-48 to resize. -->
         <figure class="w-40 sm:w-48">
@@ -108,7 +111,7 @@ import { publications } from "../data/publications";
     <!-- ===================== EDUCATION ===================== -->
     <section id="education" class="reveal scroll-mt-24 pt-20">
       <p class="eyebrow">education</p>
-      <h2 class="mt-2 font-display text-4xl uppercase leading-none text-ink">
+      <h2 class="spike mt-2 font-display text-4xl uppercase leading-none text-ink">
         Academic background
       </h2>
       <ol class="relative mt-8 space-y-8 border-l border-line pl-8">
@@ -135,7 +138,7 @@ import { publications } from "../data/publications";
     <!-- ===================== PUBLICATIONS ===================== -->
     <section id="publications" class="reveal scroll-mt-24 pt-20 pb-8">
       <p class="eyebrow">publications</p>
-      <h2 class="mt-2 font-display text-4xl uppercase leading-none text-ink">
+      <h2 class="spike mt-2 font-display text-4xl uppercase leading-none text-ink">
         Selected work
       </h2>
       <PublicationList publications={publications} client:visible />

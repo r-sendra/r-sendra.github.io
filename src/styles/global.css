@@ -251,6 +251,69 @@ body {
   border: 1px solid var(--color-line);
 }
 
+/* --- Neuron-activation title highlight ----------------------------------
+   Each `.spike` title gets a faint "axon" underline; when it enters view (or
+   on hover) an action-potential pulse propagates along it and the title fires
+   with a brief phosphor glow. Triggered by the script in Layout.astro. */
+.spike {
+  position: relative;
+  display: inline-block;
+}
+.spike::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.35rem;
+  height: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+.spike::before {
+  content: "";
+  position: absolute;
+  bottom: -0.35rem;
+  left: -44px;
+  height: 2px;
+  width: 38px;
+  border-radius: 2px;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--color-phosphor) 65%, #fff2d6);
+  box-shadow: 0 0 10px 1px rgba(255, 176, 0, 0.65);
+  pointer-events: none;
+}
+.spike.fire::before {
+  animation: axon 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.spike.fire {
+  animation: axon-glow 1s ease;
+}
+@keyframes axon {
+  0% {
+    left: -44px;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+@keyframes axon-glow {
+  0%,
+  100% {
+    text-shadow: none;
+  }
+  35% {
+    text-shadow: 0 0 12px rgba(255, 176, 0, 0.5);
+  }
+}
+
 /* --- Scroll reveal -------------------------------------------------------
    Only hide when JS is present (html.js). Without JS — or if the observer
    never fires — content stays fully visible. */
@@ -276,6 +339,10 @@ html.js .reveal.in {
     transition: none;
   }
   .blink {
+    animation: none;
+  }
+  .spike.fire::before,
+  .spike.fire {
     animation: none;
   }
 }

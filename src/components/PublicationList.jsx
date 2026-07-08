@@ -5,6 +5,7 @@ const typeLabels = {
   conference: "Conference",
   chapter: "Chapter",
   thesis: "Thesis",
+  preprint: "Preprint",
 };
 
 // Shared classes for the three action buttons / links — retro mono chips.

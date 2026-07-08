@@ -1,0 +1,45 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PostGallery from "../../components/PostGallery.jsx";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(
+  (a, b) => +new Date(b.data.date) - +new Date(a.data.date),
+);
+
+const items = posts.map((p) => ({
+  title: p.data.title,
+  description: p.data.description,
+  type: p.data.type,
+  date: new Date(p.data.date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }),
+  slug: p.id,
+  url: `/posts/${p.id}/`,
+  tags: p.data.tags,
+}));
+---
+
+<Layout
+  title="Notebook — Rafael Sendra-Arranz"
+  description="Interactive paper explainers, code experiments, and short reflections on robotics and emergence."
+  current="posts"
+>
+  <section class="mx-auto max-w-5xl px-6 pt-28">
+    <p class="eyebrow">notebook</p>
+    <h1 class="mt-2 font-display text-6xl uppercase leading-none text-ink sm:text-7xl">
+      Posts
+    </h1>
+    <p class="mt-4 max-w-xl text-lg leading-relaxed text-ink/80">
+      A gathering of interactive paper explainers, code experiments, and the
+      occasional reflection — on swarms, emergence, and whatever I'm tinkering
+      with.
+    </p>
+  </section>
+
+  <div class="mx-auto max-w-6xl px-6 pt-10 pb-24">
+    <PostGallery items={items} client:load />
+  </div>
+</Layout>

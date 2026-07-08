@@ -1,0 +1,61 @@
+---
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  current?: "home" | "posts";
+}
+
+const {
+  title,
+  description = "Rafael Sendra-Arranz — postdoctoral researcher in swarm robotics, evolutionary computation and machine learning.",
+  current = "home",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <!-- Mark JS as available before first paint so scroll-reveal can hide
+         elements without ever leaving them stuck-hidden when JS is off. -->
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
+  </head>
+  <body class="min-h-screen antialiased">
+    <Nav current={current} />
+    <slot />
+    <Footer />
+
+    <!-- Progressive-enhancement: nav state + scroll reveal -->
+    <script>
+      const nav = document.getElementById("site-nav");
+      const onScroll = () =>
+        nav?.classList.toggle("solid", window.scrollY > 40);
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            }
+          }
+        },
+        { threshold: 0, rootMargin: "0px 0px -8% 0px" },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+    </script>
+  </body>
+</html>

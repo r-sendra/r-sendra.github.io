@@ -1,0 +1,144 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SocialLinks from "../components/SocialLinks.astro";
+import BirdFlock from "../components/BirdFlock.jsx";
+import PublicationList from "../components/PublicationList.jsx";
+import { profile, education } from "../data/profile";
+import { publications } from "../data/publications";
+---
+
+<Layout title={`${profile.name} — Researcher`} current="home">
+  <!-- ============ HERO: full-bleed CRT terminal + bird flock ============ -->
+  <section id="top" class="pt-16">
+    <div class="terminal full">
+      <!-- window title bar -->
+      <div class="terminal-bar flex items-center gap-3 px-4 py-2.5">
+        <span class="flex gap-1.5">
+          <span class="h-2.5 w-2.5 bg-[#ffb000]"></span>
+          <span class="h-2.5 w-2.5 bg-[#ffb000]/55"></span>
+          <span class="h-2.5 w-2.5 bg-[#ffb000]/30"></span>
+        </span>
+        <span class="font-mono text-xs text-[#ffb000]/70">
+          rafael@csic: ~/swarm — flock.sh
+        </span>
+      </div>
+
+      <!-- CRT screen -->
+      <div class="crt relative h-[460px] overflow-hidden sm:h-[560px]">
+        <BirdFlock client:load className="absolute inset-0 h-full w-full" />
+        <div
+          class="pointer-events-none absolute inset-0 bg-gradient-to-t from-crt via-crt/40 to-transparent"
+        >
+        </div>
+
+        <div class="relative z-10 flex h-full items-end">
+          <div class="mx-auto w-full max-w-5xl px-6 pb-10 sm:px-10 sm:pb-14">
+            <p class="font-mono text-sm text-[#ffb000]/80">$ whoami</p>
+            <h1
+              class="phosphor font-display text-6xl uppercase leading-[0.85] sm:text-8xl"
+            >
+              {profile.name}<span class="blink">█</span>
+            </h1>
+            <p class="mt-3 font-mono text-sm text-amber-200/80 sm:text-base">
+              // {profile.role} · Biorobotics · CSIC
+            </p>
+
+            <ul
+              class="mt-4 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-amber-200/70 sm:text-sm"
+            >
+              {profile.interests.map((i) => <li>[ {i} ]</li>)}
+            </ul>
+
+            <div class="mt-6 flex flex-wrap items-center gap-4">
+              <a
+                href="#publications"
+                class="border border-[#ffb000]/60 px-4 py-2 font-mono text-sm text-[#ffb000] transition-colors hover:bg-[#ffb000] hover:text-crt"
+              >
+                &gt; view_publications
+              </a>
+              <a
+                href="/posts"
+                class="border border-[#ffb000]/60 px-4 py-2 font-mono text-sm text-[#ffb000] transition-colors hover:bg-[#ffb000] hover:text-crt"
+              >
+                &gt; open_notebook
+              </a>
+              <SocialLinks tone="light" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="mx-auto mt-4 max-w-5xl px-6 font-mono text-xs text-muted">
+      ↑ live boids flock — alignment · cohesion · separation · follows your cursor
+    </p>
+  </section>
+
+  <main class="mx-auto max-w-3xl px-6">
+    <!-- ===================== ABOUT ===================== -->
+    <section id="about" class="reveal scroll-mt-24 pt-16">
+      <p class="eyebrow">about</p>
+      <div class="mt-6 grid gap-8 sm:grid-cols-[auto_1fr] sm:items-start">
+        <!-- Photo in a retro CRT window frame. Portrait image lives at
+             public/rafael.jpg; adjust w-40 / sm:w-48 to resize. -->
+        <figure class="w-40 sm:w-48">
+          <div class="terminal">
+            <div class="terminal-bar flex items-center gap-2 px-3 py-1.5">
+              <span class="flex gap-1">
+                <span class="h-2 w-2 bg-[#ffb000]"></span>
+                <span class="h-2 w-2 bg-[#ffb000]/55"></span>
+                <span class="h-2 w-2 bg-[#ffb000]/30"></span>
+              </span>
+              <span class="font-mono text-[10px] text-[#ffb000]/70">rafael.jpg</span>
+            </div>
+            <img
+              src={profile.photo}
+              alt={profile.name}
+              class="block aspect-[4/5] w-full object-cover"
+            />
+          </div>
+        </figure>
+
+        <div class="space-y-4 text-lg leading-relaxed text-ink/90">
+          {profile.bio.map((para) => <p>{para}</p>)}
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EDUCATION ===================== -->
+    <section id="education" class="reveal scroll-mt-24 pt-20">
+      <p class="eyebrow">education</p>
+      <h2 class="mt-2 font-display text-4xl uppercase leading-none text-ink">
+        Academic background
+      </h2>
+      <ol class="relative mt-8 space-y-8 border-l border-line pl-8">
+        {
+          education.map((item) => (
+            <li class="relative">
+              <span class="absolute -left-[calc(2rem+4px)] top-1.5 h-2 w-2 bg-accent ring-4 ring-surface" />
+              <span class="font-mono text-xs tabular-nums text-accent">
+                {item.period}
+              </span>
+              <p class="mt-1 font-medium text-ink">{item.degree}</p>
+              <p class="text-sm text-muted">{item.institution}</p>
+              {item.note && (
+                <p class="mt-1 max-w-prose text-sm italic text-ink/70">
+                  {item.note}
+                </p>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <!-- ===================== PUBLICATIONS ===================== -->
+    <section id="publications" class="reveal scroll-mt-24 pt-20 pb-8">
+      <p class="eyebrow">publications</p>
+      <h2 class="mt-2 font-display text-4xl uppercase leading-none text-ink">
+        Selected work
+      </h2>
+      <PublicationList publications={publications} client:visible />
+    </section>
+  </main>
+</Layout>

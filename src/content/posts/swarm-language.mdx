@@ -1,0 +1,122 @@
+---
+title: "How a robot swarm invents a shared language"
+description: "A plain-language walkthrough of our Applied Soft Computing (2026) paper — with a live simulation of the whole pipeline you can run in your browser."
+type: paper
+date: 2026-07-07
+tags: ["swarm robotics", "language", "emergence", "compositionality"]
+---
+
+import SwarmLexicon from "../../components/SwarmLexicon.jsx";
+
+Imagine dropping a hundred small robots into a room littered with coloured cubes, spheres and pyramids. No robot is in charge. None of them was handed a dictionary. Yet after a while, every robot is using the **exact same words** to talk about "the red cube" or "the high-quality blue sphere" — and they can even build the second phrase out of the words for the first.
+
+How does a shared, structured language appear out of nothing? That is the question behind our paper, *Cultural evolution of perceptually grounded compositional lexicons in swarm robotics systems*. Below I'll walk through the whole idea, stage by stage, and you can run a simplified version of the entire system live.
+
+## The problem: a language with no teacher
+
+Each robot only ever sees its own little patch of the world, through noisy sensors. Its internal notion of "red" is private — a pattern of numbers that is slightly different from every other robot's. There is no central server dispensing a vocabulary, and no human labelling anything. So how can a *shared* set of words — a **lexicon** — emerge, and how can those words mean anything at all?
+
+This is a concrete instance of the **Symbol Grounding Problem** (Harnad, 1990): a symbol like a word must ultimately be tied to real sensory experience, not float around as an abstract token defined only by other tokens. Harnad argued that grounding a symbol requires three steps, and the paper implements all three:
+
+- **Iconisation** — turning raw analogue sensor signals into a stable internal snapshot.
+- **Discrimination** — deciding whether two snapshots are "the same thing" or genuinely different.
+- **Identification** — attaching a symbol (a meaning, and eventually a word) to a snapshot.
+
+To keep meanings and words separate, every concept is modelled as a **semiotic triad** of three things:
+
+- a **referent** — the actual object out in the world;
+- a **meaning** — the robot's private, internal representation of it;
+- a **form** — the spoken word, and the *only* part that is ever shared between robots.
+
+The distinction matters enormously in a crowd. Two robots can happily use the same form `wexewi` for blue while each holding a slightly different private meaning of blue. Agreement only has to happen on the **forms**; the **meanings** are allowed to stay private and divergent forever. That is what makes the whole thing tractable at the scale of a swarm.
+
+## Stage 1 — Sensing and discrimination
+
+When a robot gets close to an object it takes a noisy reading. In the paper the reading is a feature vector
+
+$$
+\mathbf{x} = (r, g, b,\; p_\square, p_\bigcirc, p_\triangle,\; Q)
+$$
+
+— three numbers for colour, three for how cube-/sphere-/pyramid-like the object looks, and a **quality** score $Q \in [0,1]$ (how "perfect" the object is). Two robots looking at the *same* object from different angles get different vectors, and the same robot gets different vectors for two "identical" objects. Nothing is labelled.
+
+So each robot has to carve its own noisy sensory space into regions on the fly, using a **discrimination game**. It keeps a set of **prototypes** — representative points, one per region. When a new reading $\mathbf{x}_s$ arrives, the robot finds its closest prototype $\xi_s$. If nothing is close enough (the distance exceeds a threshold $\theta_\xi$) it decides *"this is something new"* and stores a fresh prototype; otherwise it nudges the matching prototype toward the reading:
+
+$$
+\xi_s \leftarrow \xi_s + \lambda_\xi\,(\mathbf{x}_s - \xi_s)
+$$
+
+Repeated over thousands of encounters, this pulls each prototype toward an **invariant** representation of a real property — one stable "red," one stable "cube," despite all the sensor noise. This is iconisation and discrimination in action.
+
+## Stage 2 — Meanings and the meaning space
+
+Discrimination gives a robot stable *prototypes*; **identification** turns each prototype into a **meaning** — a point in an internal **meaning space** $\mathcal{S}$. This mapping is private: when a robot learns a new prototype it simply drops the meaning at a random point on the appropriate axis of $\mathcal{S}$. Crucially, the space has one dimension per sensory channel (colour, shape, quality), so a meaning grounded on a colour lives on the colour axis, a shape on the shape axis, and so on.
+
+This geometry is what later makes composition almost free: the meaning of "blue sphere" is defined to be the **vector sum** of its parts,
+
+$$
+\mathbf{s}_{a} = \mathbf{s}_{b} + \mathbf{s}_{c},
+$$
+
+so "blue sphere" sits at the intersection of the "blue" row and the "sphere" column. And because it's a sum, the robot can *decompose* too: subtract the "sphere" meaning from "blue sphere" and you recover "blue."
+
+## Stage 3 — Compositionality by Hebbian learning
+
+How does a robot decide to *build* "blue sphere" in the first place? Through **Hebbian learning** — the old neuroscience slogan *"cells that fire together wire together."*
+
+Every meaning carries a short-term activity trace $\beta_i$: it spikes to 1 when the robot is currently perceiving that thing and decays otherwise. Between every pair of meanings there is a slowly-changing association weight $\alpha_{ij}$ that grows when both are active at once and decays otherwise:
+
+$$
+\frac{d\alpha_{ij}}{dt} = \lambda_\alpha\,\beta_i\,\beta_j \;-\; \frac{1}{\tau_\alpha}\,\alpha_{ij}
+$$
+
+When a robot repeatedly sees blue and sphere together, $\alpha_{\text{blue},\text{sphere}}$ climbs past a threshold and the robot mints a **new composed meaning** and a **new word** for it. All of these associations live in a **Meaning Association Network (MAN)**: elementary meanings are input nodes, and each composed meaning is a node with exactly two parents. Composition **cascades** — once "blue sphere" exists, seeing a *high-quality* blue sphere can associate "blue sphere" with "high quality" to build the three-part concept "high-quality blue sphere." Deeper meanings inherit the grounding of the shallower ones.
+
+## Stage 4 — Cultural evolution through language games
+
+Grounding gives each robot its own private meanings and its own invented words. The final ingredient makes the **words** agree across the swarm: a **language game**, specifically a *naming game*. Two robots can only play if they are close (communication is local, ~1 m). One is speaker, one is hearer:
+
+- The speaker picks a concept it knows and says its word. For an **elementary** word it also transmits the prototype $(\xi_i, \omega_i)$ so the hearer knows *which thing* is being named (joint attention). For a **composed** word it transmits the two parent words too, $(\omega_{p1}, \omega_{p2}, \omega_i)$ — effectively *teaching* the new word by its definition.
+- If the hearer already uses that word → **success**: both drop their competing synonyms and keep the shared one.
+- If not → the hearer adds it. (A composed word is only accepted if the hearer already knows both parent words — you can't learn "blue sphere" before "blue" and "sphere.")
+
+Repeat these tiny local interactions, with nobody coordinating, and the whole swarm converges — first on the elementary words, then, once that base is solid, on the composed ones.
+
+## Run the whole thing
+
+The simulation below runs this entire pipeline in your browser. To keep it readable it recreates the paper's **Experiment 1**: three object types — a low-quality red cube, a high-quality blue sphere, and a high-quality blue cube — which between them define **6 elementary** words (red, blue, cube, sphere, high-Q, low-Q) and **11 composed** words, for a target lexicon of **17**.
+
+<SwarmLexicon client:load />
+
+There is a lot going on, so here's what to look for:
+
+- **The arena** — e-puck-style robots (green-ringed pucks) roam and explore. A faint green line is a robot *sensing* a nearby object; an amber line is a *language game* between two robots. Each object shows its colour and shape, with a small **quality bar underneath** (bright = high, dim = low) — quality is a third sensed dimension, exactly as in the paper.
+- **Vocabulary size** — the paper's signature curve. Early on every robot invents its own word for each concept, so the number of distinct words *overshoots*; then naming games prune the synonyms and it **collapses** back toward the true 17. Composed words (blue) grow only *after* a base of elementary words (green) exists — you can watch the two curves take off in sequence.
+- **Lexicon sharing score** — the average vocabulary overlap between every pair of robots, climbing toward **1** (perfect agreement). This is the paper's LSS.
+- **The inspected robot** (dashed amber ring) — its **Meaning Association Network**, laid out in three columns by composition depth: elementary meanings (green) → two-part composed (orange) → three-part composed like *high-Q blue cube* (red), with edges from every composed node to its two parents and the agreed word on each. Press **▸ next robot** to inspect a different one — because meanings are private, robots are often at different stages. The full lexicon is listed below it.
+
+Drag the sliders to change the crowd size, how far robots can "hear," or how fast they interact.
+
+## Measuring success
+
+Two numbers summarise a run. The **Lexicon Sharing Score** averages the vocabulary overlap (Jaccard similarity) across every pair of robots:
+
+$$
+\mathrm{LSS} = \frac{2}{R(R-1)}\sum_{i<j} \frac{|\mathcal{L}_i \cap \mathcal{L}_j|}{|\mathcal{L}_i \cup \mathcal{L}_j|}
+$$
+
+and reaches 1 when everyone uses exactly the same words. A companion **Compositionality Sharing Score** checks that robots agree not just on words but on the *recipes* — that they build "blue sphere" from the same parents. Tracking the total lexicon size $\upsilon$, split into elementary $\upsilon_\text{elem}$ and composed $\upsilon_\text{comp}$, reveals the overshoot-and-collapse you see in the plot.
+
+## Does it scale?
+
+Yes — which is the whole point of a *swarm*. In the paper, agreement holds from 10 up to **100 robots**, converging on a lexicon of **26 words** (Experiment 2, five object types), with only graceful degradation: average LSS stays around 0.99, 0.95 and 0.92 for 50, 75 and 100 robots, at the cost of somewhat longer convergence times. Most of the residual disagreement is in the *composed* words, which need the elementary base to settle first.
+
+It is also **robust**. When a quarter of the robots have a faulty colour sensor that sees red as purple, the swarm simply grows an extra "purple" word and its compositions — and sharing among the healthy robots doesn't break. Likewise when odd, in-between shapes are added. The agreement is an emergent property of the interaction, not a fragile hand-tuned artefact.
+
+## Why I find this exciting
+
+Most communication in swarm robotics is bare **signalling** — a robot flashes a light to trigger a behaviour, and the "meaning" lives entirely in the designer's head. This work pushes toward something closer to **language**: grounded in real perception, compositional, and negotiated from the bottom up, with no dictionary written in advance. It's the thread running through all my research — rich global structure emerging from simple local rules — aimed here at *how meaning itself might emerge in a machine collective.* One day, a search-and-rescue swarm could invent, on the fly, the words it needs to tell its teammates exactly what it found and where.
+
+---
+
+Read the full paper: **R. Sendra-Arranz & Á. Gutiérrez**, *Cultural evolution of perceptually grounded compositional lexicons in swarm robotics systems*, **Applied Soft Computing** (2026) — [doi:10.1016/j.asoc.2026.115879](https://doi.org/10.1016/j.asoc.2026.115879).

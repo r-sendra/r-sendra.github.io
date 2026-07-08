@@ -1,0 +1,37 @@
+---
+title: "Conway's Game of Life"
+description: "An interactive cellular automaton — draw a soup of cells, press play, and watch complexity emerge from four tiny rules."
+type: project
+date: 2026-07-07
+tags: ["cellular-automata", "emergence", "interactive"]
+---
+
+import GameOfLife from "../../components/GameOfLife.jsx";
+
+In 1970 the mathematician John Conway invented a "game" with no players and no goal — just a grid of cells that are either **alive** or **dead**, and four rules applied to everyone at once, forever.
+
+<GameOfLife client:load />
+
+*Click and drag on the screen to draw cells. `play` runs the simulation; `step` advances one generation; `random` reseeds a soup; `clear` empties the grid.*
+
+## The rules
+
+At each tick, every cell looks at its eight neighbours and obeys:
+
+1. A **live** cell with **2 or 3** live neighbours survives.
+2. A **dead** cell with **exactly 3** live neighbours is born.
+3. Everyone else dies (loneliness or overcrowding), or stays dead.
+
+That's the whole specification. Formally, if $n$ is a cell's number of live neighbours and $s$ its current state, the next state is
+
+$$
+s' = \begin{cases} 1 & \text{if } s = 1 \text{ and } n \in \{2, 3\} \\ 1 & \text{if } s = 0 \text{ and } n = 3 \\ 0 & \text{otherwise} \end{cases}
+$$
+
+## Why I like it
+
+There are no birds in the Game of Life, and yet — gliders crawl across the grid, guns spit out streams of them, and whole self-replicating machines have been built inside it. None of that is *in* the rules. It **emerges** from them.
+
+That gap — between a trivially simple local rule and the wild global behaviour it produces — is exactly what fascinates me about swarm robotics. A robot, like a cell, only ever sees its neighbours. The interesting question is never "what does one agent do?" but "what does a thousand of them *become*?"
+
+Press `random`, hit `play`, and watch a while. Somewhere in that flicker is the same idea I chase in my research.

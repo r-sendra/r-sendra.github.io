@@ -1,0 +1,37 @@
+---
+// Shared fixed nav. Links use absolute paths so they work from any page.
+interface Props {
+  current?: "home" | "posts";
+}
+const { current = "home" } = Astro.props;
+
+const links = [
+  { href: "/#about", label: "about" },
+  { href: "/#education", label: "education" },
+  { href: "/#publications", label: "publications" },
+  { href: "/posts", label: "posts", key: "posts" },
+];
+---
+
+<header id="site-nav" class="fixed inset-x-0 top-0 z-30">
+  <nav class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+    <a href="/" class="font-mono text-sm font-semibold tracking-tight text-ink">
+      rafael-sendra-arranz
+    </a>
+    <div class="hidden items-center gap-6 font-mono text-sm sm:flex">
+      {
+        links.map((l) => (
+          <a
+            href={l.href}
+            class:list={[
+              "transition-colors hover:text-accent",
+              l.key === current ? "text-accent" : "text-muted",
+            ]}
+          >
+            {l.label}
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+</header>

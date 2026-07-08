@@ -1,0 +1,29 @@
+---
+import SocialLinks from "./SocialLinks.astro";
+import { profile, footerAddress } from "../data/profile";
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-16 bg-crt text-amber-200/70">
+  <div
+    class="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-12 sm:flex-row sm:items-center sm:justify-between"
+  >
+    <div>
+      <p class="phosphor font-display text-3xl uppercase leading-none">
+        {profile.name}
+      </p>
+      <p class="mt-3 max-w-md font-mono text-xs text-amber-200/60">
+        {footerAddress}
+      </p>
+      <p class="mt-1 font-mono text-xs">
+        <a href={`mailto:${profile.email}`} class="text-[#ffb000] hover:underline">
+          {profile.email}
+        </a>
+      </p>
+    </div>
+    <div class="flex flex-col items-start gap-3 sm:items-end">
+      <SocialLinks tone="light" />
+      <p class="font-mono text-xs text-amber-200/40">© {year} {profile.name}</p>
+    </div>
+  </div>
+</footer>

@@ -251,10 +251,10 @@ body {
   border: 1px solid var(--color-line);
 }
 
-/* --- Neuron-activation title highlight ----------------------------------
-   Each `.spike` title gets a faint "axon" underline; when it enters view (or
-   on hover) an action-potential pulse propagates along it and the title fires
-   with a brief phosphor glow. Triggered by the script in Layout.astro. */
+/* --- Title highlight -----------------------------------------------------
+   Each `.spike` title has a faint underline; a glowing pulse sweeps along it
+   and the title briefly lights up when it scrolls into view / on hover.
+   Triggered by the script in Layout.astro. */
 .spike {
   position: relative;
   display: inline-block;
@@ -313,6 +313,7 @@ body {
     text-shadow: 0 0 12px rgba(255, 176, 0, 0.5);
   }
 }
+
 
 /* --- Scroll reveal -------------------------------------------------------
    Only hide when JS is present (html.js). Without JS — or if the observer

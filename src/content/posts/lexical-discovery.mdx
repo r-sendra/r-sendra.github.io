@@ -1,0 +1,136 @@
+---
+title: "How AI agents invent words for things that have no name"
+description: "A plain-language tour of our NSLD preprint — LLM agents playing a naming game over alien objects and anchoring the words they invent to human language — with a lightweight, LLM-free simulation you can run in your browser."
+type: paper
+date: 2026-09-16
+tags: ["language emergence", "LLM agents", "grounding", "exploration"]
+---
+
+import LexicalDiscovery from "../../components/LexicalDiscovery.jsx";
+
+Picture a team of autonomous rovers on the ice crust of Europa, or a fleet of submersibles ten kilometres down in a trench nobody has mapped. They start finding *things* — organisms, mineral growths, structures — that no human has ever seen. There is no word for them in any language, no label to look up, and no operator close enough to name them in real time. Yet the machines have to **talk to each other about these things** to coordinate, and, ideally, report back in terms **we** can understand.
+
+How do you get a population of AI agents to invent a shared vocabulary for the nameless — and keep it readable to humans? That is the question behind our preprint, *Lexical discovery in unknown environments orchestrated by Large Language Models*, and the framework it proposes: **Neuro-Symbolic Lexical Discovery (NSLD)**.
+
+If you read my [previous post on how a robot swarm invents a shared language](/posts/swarm-language/), this is the same idea — cultural evolution through language games — taken to a very different kind of agent: language models looking at genuinely unknown objects.
+
+## The problem: naming the nameless
+
+Two things make this hard.
+
+First, the referents are **out of distribution**: they are not in any training set. In the paper we generated ten synthetic "alien" images — creatures, rocks, structures, artefacts — with a text-to-image model prompted to produce things "entirely nameless", with no cultural reference, and we checked they were absent from the vision and language models' training data. An agent cannot cheat by recognising a cat.
+
+Second, there is **no teacher**. No agent is handed a dictionary and there is no central authority. A shared lexicon must *emerge* from local interactions, exactly as in the swarm work — but now we also want the invented words to stay **interpretable**: an operator should be able to ask "what does *kiravo* mean?" and get a useful answer.
+
+## Inside an NSLD agent
+
+Each agent is a small neuro-symbolic stack with three parts.
+
+**Eyes — a frozen CLIP encoder.** Every image is turned into a 512-dimensional vector $\mathbf{v}$ by a frozen ViT-B/32 CLIP model shared by all agents. Nothing is fine-tuned. Crucially, CLIP's space is *shared between images and text*, which is what will let us bridge alien words to English later.
+
+**Memory — a private FAISS vector index.** Each agent keeps its own lexical memory with two partitions:
+
+- a **static perceptual base**: about 3,000 English nouns and adjectives from WordNet, pre-encoded as text (`a photo of a {word}`). It is identical for every agent and never changes — think of it as the agent's human vocabulary;
+- a **dynamic alien-word index**: entries of the form (alien word $w$, grounding $\boldsymbol{\xi}_w$, confidence $c(w)$). The grounding is simply the image embedding of the referent at the moment the word was created. This partition is private and grows as the game unfolds.
+
+To recognise something, the agent retrieves the alien word whose grounding is closest to what it sees,
+
+$$
+w^{*} = \arg\max_{w \in \mathcal{V}_i} \frac{\mathbf{v}\cdot\boldsymbol{\xi}_w}{\|\mathbf{v}\|\,\|\boldsymbol{\xi}_w\|},
+$$
+
+and accepts the match only if that cosine similarity is at least $\theta = 0.9$. Otherwise, as far as this agent is concerned, it is looking at something it has no word for.
+
+**Brain — a text-only LLM.** Decisions are made by an open 20-billion-parameter language model run locally at temperature 0. Notice: **the LLM never sees pixels.** It reasons over what its tools report — similarity scores, its own lexicon, the outcome of the last game — and acts through a handful of tools (`observe_environment`, `get_lexicon`, `get_similarity`, `add_alien_word`, `replace_alien_word`, `end_turn`). A small state machine catches hallucinated tool calls and stalls and forces every turn to a valid end.
+
+## The referential game
+
+Consensus is built through a **referential game** — the LLM-era cousin of the naming game from the swarm paper. Each round:
+
+1. Two agents are picked at random: a **speaker** and a **hearer**. Both see the same scene through CLIP.
+2. The speaker picks a target referent, looks it up in its memory, and either reuses its word for it or — if nothing is similar enough — **invents** one, and commits to it.
+3. The hearer is shown which referent was meant and answers with *its own* word for it (inventing one too if it has none).
+4. The two words are compared: **success** if they match, **failure** if not. Both agents are told the outcome and each other's word.
+
+Then the lexicons update through a simple confidence dynamic:
+
+$$
+c(w) \leftarrow \min\!\big(1,\; c(w) + 0.25\big) \;\text{ on success}, \qquad
+c(w) \leftarrow \max\!\big(0,\; c(w) - 0.20\big) \;\text{ on failure}.
+$$
+
+After a failure, the agent whose word carries less confidence tends to **drop it and adopt the other's** — a winner-take-all pressure that, repeated over thousands of local rounds, pulls the whole population onto one word per thing.
+
+New words obey a few rules: an agent only invents when nothing in its memory clears the $\theta$ threshold and no synonym already exists; the word is three syllables drawn from a fixed inventory of 45 (91,125 possible forms); it must not be an English word; and it starts with confidence 0, grounded to the embedding of what the agent is looking at.
+
+## Anchoring alien words to our language
+
+This is the part I like most. Because the grounding $\boldsymbol{\xi}_w$ lives in CLIP's shared image–text space, we can ask, for any alien word, **which English words are nearest to it**. The static perceptual base answers with the $k$ closest descriptors: an alien creature named *kiravo* might sit next to *textured*, *organic*, *segmented*.
+
+The alien word is not *defined* by those descriptors — it points at one specific thing that they only approximate — but it is **anchored** to them. The result is an alien dictionary a human can actually read: every new word links to its image *and* to a cloud of familiar terms. The human vocabulary is enlarged rather than bypassed, and without polysemy: one word, one referent.
+
+## Run it yourself
+
+The simulation below recreates the game **without any LLM or CLIP**, so it runs instantly in your browser. The stand-ins are simple but faithful to the mechanics: the embedding space is a 2-D plane; the alien referents are procedurally drawn blobs living in it; the English perceptual base is a fixed set of descriptor words scattered around the same plane, so every alien word has "nearest English neighbours"; and the agents are rule-based rather than LLM-driven, but they play exactly the same game, with the same confidence updates, invention rules and syllable inventory.
+
+<LexicalDiscovery client:load />
+
+What to look for:
+
+- **The embedding space** — each blob is an alien referent; the amber **ring** around it fills up as more agents agree on its name, and the current majority word is written underneath. The faint words are the English perceptual base. The row of dots at the bottom are the agents: each round the **speaker (S)** and **hearer (H)** light up — green when they agreed, red when they didn't.
+- **Game outcomes** — the strip of ticks is the raster of successes and failures. Early on it is mostly red; then successes take over.
+- **Grounding consensus $G$** — the fraction of agent pairs using the same word for the same thing. It follows the characteristic **sigmoid** from the paper; the dashed line is the 0.95 threshold, and the title bar reports $T_{0.95}$, the round at which it was crossed.
+- **Vocabulary size $V$** — the number of distinct words alive in the population. Watch it **explode, overshoot, then collapse** onto the dashed line at $n_e$: one word per referent.
+- **Referents and agents** — the table lists each thing's leading word, how many agents use it, and its nearest English anchors; the inspector shows one agent's private lexicon with confidence bars. Press *next agent* to compare — they disagree early and converge late.
+
+Try the sliders: more **agents** or more **referents** makes consensus markedly slower — exactly the scaling the paper measures.
+
+## What the experiments showed
+
+We ran 28 configurations — populations of 2 to 20 agents naming 3 to 10 referents — and the population **always converged** to $G \ge 0.95$. The cost is time: two agents naming three things agreed in $16 \pm 9$ rounds; twenty agents naming ten things needed $4572 \pm 472$ rounds, almost 300 times more. Both the number of agents and the number of things push convergence later, and they compound.
+
+The shape of the dynamics is remarkably regular. Consensus rises as a sigmoid; the vocabulary shoots up as everyone invents, overshoots, and is then pruned back to exactly $n_e$ words; and the success raster shows long early runs of failure (in the five-agent case study the first success came at round 35) giving way to consistent success. Alongside $G$ we tracked the mean population confidence and a pairwise agreement score, which follow delayed sigmoids of their own.
+
+Formally, consensus is measured as
+
+$$
+G = \frac{1}{n_e\, n_a (n_a - 1)} \sum_{i=1}^{n_a}\sum_{j \neq i} \tilde{A}_{ij},
+$$
+
+the normalised agreement between every ordered pair of agents, averaged over referents.
+
+## Predicting convergence before you deploy
+
+The regularity is useful, because it means you can **model** it. We fitted three analytical models, all with $R^2 > 0.95$ across the 28 conditions.
+
+**The direct model** describes the consensus curve as a logistic in the round $T$,
+
+$$
+G(T, n_a, n_e) = \frac{1}{1 + e^{-k\,(T - T_{0.5})}},
+$$
+
+where the steepness $k$ and the half-way round $T_{0.5}$ are power laws in the population size and the number of referents.
+
+**The inverse model** turns that around into a closed-form answer to the practical question — *how many rounds until we reach a target consensus $\theta$?*
+
+$$
+T_\theta(n_a, n_e) = T_{0.5} + \frac{1}{k}\,\ln\!\frac{\theta}{1-\theta}.
+$$
+
+**The vocabulary model** captures the overshoot-and-collapse of the word count as a converged part plus a transient bump,
+
+$$
+V(T) = n_e\, G(T) + A\, T^{\gamma} e^{-\lambda_v T}\,\big(1 - G(T)\big),
+$$
+
+with the amplitude and the pruning rate again following power laws.
+
+This is what the "pre-deployment planning" in the title means: before sending a team of agents into an unknown environment, a mission planner can plug in the expected crew size and an estimate of how many novel things they will meet, and read off how much communication budget it takes for them to be speaking the same language.
+
+## Why I find this exciting
+
+In the swarm work, tiny robots invented words for coloured cubes through nothing but local games. Here the agents are language models, the referents are genuinely alien, and the invented words come out **anchored to human language** — yet the engine is the same: cultural evolution, no dictionary, no central authority. That the resulting dynamics are regular enough to predict with a three-parameter curve suggests emergent communication is not just a curiosity but something we can plan around: a small step toward machine crews that can go where we can't, name what they find, and tell us about it in words we can follow.
+
+---
+
+Read the preprint: **R. Sendra-Arranz, I. Dellibarda Varela, E. Rocon, Á. Gutiérrez & M. Cebrian**, *Lexical discovery in unknown environments orchestrated by Large Language Models*, arXiv:2607.22591 (2026) — [arxiv.org/abs/2607.22591](https://arxiv.org/abs/2607.22591).

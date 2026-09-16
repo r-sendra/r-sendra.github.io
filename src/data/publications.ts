@@ -27,6 +27,28 @@ export type Publication = {
 export const publications: Publication[] = [
   {
     title:
+      "Lexical discovery in unknown environments orchestrated by Large Language Models",
+    authors:
+      "R. Sendra-Arranz, I. Dellibarda Varela, E. Rocon, Á. Gutiérrez, M. Cebrian",
+    venue: "arXiv:2607.22591 (cs.AI)",
+    year: 2026,
+    type: "preprint",
+    link: "https://arxiv.org/abs/2607.22591",
+    github: "",
+    paperPage: "/posts/lexical-discovery/",
+    abstract:
+      "Populations of autonomous agents deployed in unknown environments (e.g. planetary or deep-sea exploration) must develop shared vocabularies to refer to entities that have no name in any human language. We propose the Neuro-Symbolic Lexical Discovery (NSLD) framework, in which a population of LLM-based agents plays a referential game over out-of-distribution visual referents, autonomously self-organising a shared alien lexicon. Each agent combines a frozen CLIP vision encoder with a private FAISS vector index and a text-only LLM. Discovered alien words are anchored to natural language via semantic proximity in the embedding space, enlarging the human vocabulary with new perceptually grounded words. Consensus is reached with populations of up to twenty agents and ten visual referents, and convergence dynamics are characterised through three analytical models achieving R² > 0.95.",
+    bibtex: `@misc{sendra2026lexical,
+  title         = {Lexical discovery in unknown environments orchestrated by Large Language Models},
+  author        = {Sendra-Arranz, Rafael and Dellibarda Varela, I\\~naki and Rocon, Eduardo and Guti\\'errez, \\'Alvaro and Cebrian, Manuel},
+  year          = {2026},
+  eprint        = {2607.22591},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI}
+}`,
+  },
+  {
+    title:
       "POIROT: Interrogating Agents for Failure Detection in Multi-Agent Systems",
     authors:
       "I. Dellibarda Varela, R. Sendra-Arranz, P. Romero-Sorozabal, J. M. Valverde-García, A. F. Laudanski, Á. Gutiérrez, E. Rocon, M. Cebrian",
@@ -34,7 +56,8 @@ export const publications: Publication[] = [
     year: 2026,
     type: "preprint",
     link: "https://arxiv.org/abs/2606.02282",
-    github: "",
+    github: "https://github.com/11inaki11/POIROT",
+    paperPage: "https://www.poirot-framework.com/",
     abstract:
       "Emergent failures and hallucinations in Large Language Model multi-agent systems are addressed by POIROT, a protocol that leverages the system's own agents as diagnostic evaluators. The approach outperforms single-LLM evaluator baselines, with gains that scale with problem complexity, showing that safety oversight can be handled internally rather than by external evaluators. The authors release an open-source POIROT library and BLAME, a benchmark for fault attribution in safety-critical systems.",
     bibtex: `@misc{dellibarda2026poirot,
